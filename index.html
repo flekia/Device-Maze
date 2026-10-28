@@ -45,20 +45,14 @@ canvas{
 <script>
 const canny = document.getElementById("balling");
 const btn = document.getElementById("perms");
-let dim = null;
-if (!canny || !canny.getContext){
-alert("BOOO IT DON'T WORK!");    
-} else {
 const dim = canny.getContext("2d");
-}
 //ball properties
 let ball = {
 x: canny.width/2,
 y: canny.height/2,
 radius:15,
 vx:0,
-vy:0,
-color: "red"
+vy:0
 };
 //tilter
 let tX = 0;
