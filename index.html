@@ -17,13 +17,9 @@
     overflow:hidden;
 }
 canvas{
-    background:#200202;
-    border:1px solid black;
-    border-radius: 50%;
-    -moz-border-radius:50%;
-    -webkit-border-radius:50%;
-    height:50px;
-    width:50px
+    background: black;
+    height:75%;
+    width:75%;
 }
 #perms{
             margin-bottom: 15px;
@@ -50,7 +46,7 @@ const dim = canny.getContext("2d");
 let ball = {
 x: canny.width/2,
 y: canny.height/2,
-radius:15,
+radius:5,
 vx:0,
 vy:0,
 color: "red"
