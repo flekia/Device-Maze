@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Device Maze</title>
     <style>
-        html{
+        html, body{
     height:100%;
     width: 100%;
+    margin: 0;
+    background: gray;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow:hidden;
 }
 canvas{
     background:#200202;
@@ -27,7 +34,8 @@ canvas{
             border: none;
             border-radius: 8px;
             cursor: pointer;
-
+            position: absolute;
+            top: 1.5em;
 }
     </style>
 </head>
@@ -35,13 +43,14 @@ canvas{
 <button id="perms">Permission</button>
 <canvas id="balling" ></canvas>
 <script>
-    const canny = document.getElementById("balling");
+const canny = document.getElementById("balling");
+const btn = document.getElementById("perms");
+let dim = null;
 if (!canny || !canny.getContext){
 alert("BOOO IT DON'T WORK!");    
 } else {
 const dim = canny.getContext("2d");
 }
-const btn = document.getElementById("perms");
 //ball properties
 let ball = {
 x: canny.width/2,
@@ -65,7 +74,7 @@ function sensing(){
     if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission == 'function'){
         DeviceMotionEvent.requestPermission()
         .then(r => {
-            if (response === "granted"){
+            if (r === "granted"){
                 window.addEventListener("deviceorientation", handleTilt);
                 btn.style.display = "none";
             }
@@ -108,8 +117,9 @@ function dating(){
 }
 
 function reset(){
-    dim.beginPath();
+    if(!dim) return;
     dim.clearRect(0,0,canny.width,canny.height);
+    dim.beginPath();
     dim.arc(ball.x,ball.y,ball.radius,0,Math.PI*2);
     dim.fillStyle = ball.color;
     dim.fill();
@@ -120,6 +130,7 @@ function lol(){
     reset();
     requestAnimationFrame(lol);
 }
+//aaaaand ACTION
 lol();
 </script>
 </body>
