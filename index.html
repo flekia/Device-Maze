@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Maze</title>
+    <style>
+        html{
+    height:100%;
+    width: 100%;
+}
+canvas{
+    background:#200202;
+    border:2px solid #555;
+    box-shadow:0 10px 20px rgba(0,0,0,.5);
+}
+
+    </style>
+</head>
+<body>
+<button id="perms">Permission</button>
+<canvas id="balling" width="350" height="500"></canvas>
+<script>
+    const canny = document.getElementById("balling");
+if (!canny || !canny.getContext){
+alert("BOOO IT DON'T WORK!");    
+} else {
+const dim = canny.getContext("2d");
+}
+const btn = document.getElementById("perms");
+//ball properties
+let ball = {
+x: canny.width/2,
+y: canny.height/2,
+radius:15,
+vx:0,
+vy:0,
+color: "red"
+};
+//tilter
+let tX = 0;
+let tY = 0;
+
+function handleTilt(e){
+    tX = e.gamma || 0;
+    tY = e.beta || 0;
+}
+
+function sensing(){
+    //ios
+    if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission == 'function'){
+        DeviceMotionEvent.requestPermission()
+        .then(r => {
+            if (response === "granted"){
+                window.addEventListener("deviceorientation", handleTilt);
+                btn.style.display = "none";
+            }
+        })
+        .catch(console.error);
+    } else {
+        //droid
+        window.addEventListener("deviceorientation", handleTilt);
+        btn.style.display = "none";
+    }
+    console.log("sensing");
+}
+btn.addEventListener("click", sensing);
+
+//it's gaming time
+
+function dating(){
+    let fricking = .05;
+    ball.vx += tX * fricking;
+    ball.vy += tY * fricking;
+    ball.vx *= .9;
+    ball.vy *= .9;
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+    let bounce = -.7;
+    if (ball.x - ball.radius <0){
+        ball.x = ball.radius;
+        ball.vx *= bounce;
+    } else if (ball.x + ball.radius > canny.width){
+        ball.x = canny.width - ball.radius;
+        ball.vx *= bounce;
+    }
+    if (ball.y - ball.radius <0){
+        ball.y = ball.radius;
+        ball.vy *= bounce;
+    } else if (ball.y + ball.radius > canny.height){
+        ball.y = canny.height - ball.radius;
+        ball.vy *= bounce;
+    }
+}
+
+function reset(){
+    dim.beginPath();
+    dim.clearRect(0,0,canny.width,canny.height);
+    dim.arc(ball.x,ball.y,ball.radius,0,Math.PI*2);
+    dim.fillStyle = ball.color;
+    dim.fill();
+    dim.closePath();
+}
+function lol(){
+    dating();
+    reset();
+    requestAnimationFrame(lol);
+}
+lol();
+</script>
+</body>
+</html>
