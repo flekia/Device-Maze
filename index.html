@@ -11,15 +11,29 @@
 }
 canvas{
     background:#200202;
-    border:2px solid #555;
-    box-shadow:0 10px 20px rgba(0,0,0,.5);
+    border:1px solid black;
+    border-radius: 50%;
+    -moz-border-radius:50%;
+    -webkit-border-radius:50%;
+    height:50px;
+    width:50px
 }
+#perms{
+            margin-bottom: 15px;
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
 
+}
     </style>
 </head>
 <body>
 <button id="perms">Permission</button>
-<canvas id="balling" width="350" height="500"></canvas>
+<canvas id="balling" ></canvas>
 <script>
     const canny = document.getElementById("balling");
 if (!canny || !canny.getContext){
