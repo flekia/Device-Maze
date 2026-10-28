@@ -18,35 +18,52 @@
 }
 canvas{
     background: black;
-    height:75%;
-    width:75%;
+    border:.5rem solid darkgray;
+    border-radius: 1rem;
 }
 #perms{
             margin-bottom: 15px;
             padding: 12px 24px;
             font-size: 16px;
-            background-color: #007aff;
+            background-color: lightgray;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             position: absolute;
             top: 1.5em;
+            transition-duration: .5s;
+        }
+#perms:hover{
+    background-color: darkgray;
+    color: white;
 }
-    </style>
+        </style>
 </head>
 <body>
-<button id="perms">Permission</button>
-<canvas id="balling" ></canvas>
-<script>
-const canny = document.getElementById("balling");
-const btn = document.getElementById("perms");
-const dim = canny.getContext("2d");
-//ball properties
+    <button id="perms">Opening Motion Sensors...</button>
+    <canvas id="balling"></canvas>
+    <script>
+        //ball properties start
+        const canny = document.getElementById("balling");
+        const btn = document.getElementById("perms");
+        const dim = canny.getContext("2d");
+        //screen
+        const screenS = Math.min(window.innerWidth,window.innerHeight)*.75;
+        canny.width = screenS;
+        canny.height = screenS;
+        //maze props
+        const col = 10;
+        const rows = 10;
+        const w = canny.width/col;
+        let grid = [];
+        let curriCell;
+        let stack = [];
+        //ball properties
 let ball = {
-x: canny.width/2,
-y: canny.height/2,
-radius:5,
+x: w/2,
+y: w/2,
+radius:w/4,
 vx:0,
 vy:0,
 color: "red"
@@ -90,6 +107,15 @@ function dating(){
     ball.vy *= .9;
     ball.x += ball.vx;
     ball.y += ball.vy;
+    let gX = (col-1)*w;
+    let gY = (rows-1)*w;
+    if (ball.x>gX+5&&ball.x<gX+w-5&&ball.y>gY+5&&ball.y<gY+w-5){
+        arena();
+        ball.x=w/2;
+        ball.y=w/2;
+        ball.vx=0;
+        ball.vy=0;
+    }
     let bounce = -.7;
     if (ball.x - ball.radius <0){
         ball.x = ball.radius;
@@ -106,10 +132,18 @@ function dating(){
         ball.vy *= bounce;
     }
 }
-
 function reset(){
-    if(!dim) return;
     dim.clearRect(0,0,canny.width,canny.height);
+    let gX = (col-1)*w;
+    let gY = (rows-1)*w;
+    dim.fillStyle = "green";
+    dim.beginPath();
+    dim.arc(gX+w/2,gY+w/2,w/3,0,Math.PI*2);
+    dim.fill();
+    dim.closePath();
+    for (let i = 0; i<grid.length;i++){
+        grid[i].drawing();
+    }
     dim.beginPath();
     dim.arc(ball.x,ball.y,ball.radius,0,Math.PI*2);
     dim.fillStyle = ball.color;
@@ -121,7 +155,116 @@ function lol(){
     reset();
     requestAnimationFrame(lol);
 }
-//aaaaand ACTION
+//ball properties end
+//maze props start
+//griddy
+class Cell{
+    constructor(r,c){
+        this.r = r;
+        this.c = c;
+        this.wall = [true, true, true, true];
+        this.visited = false;
+    }
+    checkOthers() {
+        let others = [];
+        let top = grid[liner(this.r-1, this.c)];
+        let right = grid[liner(this.r, this.c+1)];
+        let left = grid[liner(this.r, this.c-1)];
+        let bottom = grid[liner(this.r+1, this.c)];
+        if(top && !top.visited) others.push(top);
+        if(right && !right.visited) others.push(right);
+        if(left && !left.visited) others.push(left);
+        if(bottom && !bottom.visited) others.push(bottom);
+        if(others.length > 0){
+            let r = Math.floor(Math.random()*others.length)
+            return others[r];
+        }else{
+            return undefined;
+        }
+    }
+    drawing(){
+        let x = this.c*w;
+        let y = this.r*w;
+        dim.lineWidth = 2;
+        dim.strokeStyle = "white";
+        //top right left bottom
+        if(this.wall[0]){
+            dim.beginPath();
+            dim.moveTo(x,y);
+            dim.lineTo(x+w,y);
+            dim.stroke();
+        }
+        if(this.wall[1]){
+            dim.beginPath();
+            dim.moveTo(x+w,y);
+            dim.lineTo(x+w,y+w);
+            dim.stroke();
+        }
+        if(this.wall[2]){
+            dim.beginPath();
+            dim.moveTo(x+w,y+w);
+            dim.lineTo(x,y+w);
+            dim.stroke();
+        }
+        if(this.wall[3]){
+            dim.beginPath();
+            dim.moveTo(x,y+w);
+            dim.lineTo(x,y);
+            dim.stroke();
+        }
+    }
+}
+//liner
+function liner(r,c){
+    if(r<0||c<0||r>=rows||c>=col) return -1;
+    return c + r*col;
+}
+function mazeBank(){
+    grid = [];
+    for (let r = 0; r<rows;r++){
+        for(let c = 0; c<col;c++){
+            grid.push(new Cell(r,c));
+        }
+    }
+    curriCell = grid[0];
+    curriCell.visited = true;
+}
+function removing(e,f){
+    let x = e.c - f.c;
+    if (x===1){
+        e.wall[3]=false;
+        f.wall[1]=false;
+    } else if(x===-1){
+        e.wall[1]=false;
+        f.wall[3]=false;
+    }
+    let y = e.r - f.r;
+    if(y===1){
+        e.wall[0]=false;
+        f.wall[2]=false;
+    } else if (y===-1){
+        e.wall[2]=false;
+        f.wall[0]=false;
+    }
+}
+function arena(){
+    mazeBank();
+    let next = curriCell.checkOthers();
+    while(next || stack.length >0){
+        if(next){
+        next.visited = true;
+        stack.push(curriCell);
+        removing(curriCell, next);
+        curriCell = next;
+        }else if(stack.length>0){
+            curriCell = stack.pop();
+        }
+        next = curriCell.checkOthers();
+    }
+}
+//maze props end
+//aaaaand ACTION!!
+arena();
 lol();
 </script>
 </body>
