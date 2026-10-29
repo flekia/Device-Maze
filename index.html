@@ -129,8 +129,8 @@ function checkingCollision(x,y,xx,yy){
             let lap = ball.radius - d;
             ball.x += (disX/d)*lap;
             ball.y += (disY/d)*lap;
-            let nthx = -dY;
-            let nthy = dX;
+            let nthx = disX/d;
+            let nthy = disY/d;
             let nleng = Math.sqrt(nthx*nthx+nthy*nthy);
             if(nleng>0){
                 nthx/=nleng;
