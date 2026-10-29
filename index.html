@@ -112,12 +112,12 @@ btn.addEventListener("click", sensing);
 function checkingCollision(x,y,xx,yy){
     let dX = xx-x;
     let dY = yy-y;
-    let lSq = dx * dx + dy*dy;//area
+    let lSq = dX*dX + dY*dY;//area
     if (lSq === 0){
         return;
     }
     let s = ((ball.x - x)*dX + (ball.y-y)*dY)/lSq;
-    s = Math.max(0,Math.min(1,t));
+    s = Math.max(0,Math.min(1,s));
     let nearX = x+s*dX;
     let nearY = y+s*dY;
     let disX = ball.x-nearX;
@@ -150,7 +150,7 @@ function colliding(){
     for(let i = 0; i<grid.length;i++){
         let cellular = grid[i];
         let x = cellular.c*w;
-        let y = cell.r*w;
+        let y = cellular.r*w;
         //top, left, right, bottom
         if(cellular.wall[0]){
             checkingCollision(x,y,x+w,y);
@@ -359,7 +359,7 @@ if(isPC()){
 function poSys(){
     points++;
     pointers.innerText = "Points: "+points;
-    let current = score;
+    let current = points;
 }
 
 //aaaaand ACTION!!
