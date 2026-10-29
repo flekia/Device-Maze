@@ -15,6 +15,7 @@
     align-items: center;
     justify-content: center;
     overflow:hidden;
+    font-family:Arial, Helvetica, sans-serif;
 }
 canvas{
     background: black;
@@ -38,12 +39,22 @@ canvas{
     background-color: darkgray;
     color: white;
 }
+div{
+    position: relative;
+    margin-top:1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+}
         </style>
 </head>
 <body>
     <button id="perms">Opening Motion Sensors...</button>
+    <div id="po">Points: 0</div>
     <canvas id="balling"></canvas>
     <script>
+        //points
+        const pointer = document.getElementById("po");
+        let points = 0;
         //ball properties start
         const canny = document.getElementById("balling");
         const btn = document.getElementById("perms");
@@ -71,12 +82,12 @@ color: "red"
 //tilter
 let tX = 0;
 let tY = 0;
-
+//motion sensor
 function handleTilt(e){
     tX = e.gamma || 0;
     tY = e.beta || 0;
 }
-
+//senses what brand
 function sensing(){
     //ios
     if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission == 'function'){
@@ -97,6 +108,65 @@ function sensing(){
 }
 btn.addEventListener("click", sensing);
 
+//colliding ball with maze
+function checkingCollision(x,y,xx,yy){
+    let dX = xx-x;
+    let dY = yy-y;
+    let lSq = dx * dx + dy*dy;//area
+    if (lSq === 0){
+        return;
+    }
+    let s = ((ball.x - x)*dX + (ball.y-y)*dY)/lSq;
+    s = Math.max(0,Math.min(1,t));
+    let nearX = x+s*dX;
+    let nearY = y+s*dY;
+    let disX = ball.x-nearX;
+    let disY = ball.y-nearY;
+    let dSq = disX*disX+disY*disY;
+    if(dSq < ball.radius*ball.radius){
+        let d = Math.sqrt(dSq);
+        if(d>0){
+            let lap = ball.radius - d;
+            ball.x += (disX/d)*lap;
+            ball.y += (disY/d)*lap;
+            let nthx = -dY;
+            let nthy = dX;
+            let nleng = Math.sqrt(nthx*nthx+nthy*nthy);
+            if(nleng>0){
+                nthx/=nleng;
+                nthy/=nleng;
+                let bali = ball.vx += 1.5*nthx + ball.vy * nthy;
+                if(bali<0){
+                    ball.vx -= 1.5*bali*nthx;
+                    ball.vy-=1.5*bali*nthy;
+                    ball.vx*=.6;
+                    ball.vy*=.6;
+                }
+            }
+        }
+    }
+}
+function colliding(){
+    for(let i = 0; i<grid.length;i++){
+        let cellular = grid[i];
+        let x = cellular.c*w;
+        let y = cell.r*w;
+        //top, left, right, bottom
+        if(cellular.wall[0]){
+            checkingCollision(x,y,x+w,y);
+        }
+        if(cellular.wall[3]){
+            checkingCollision(x,y,x,y+w);
+        }
+        if(cellular.c === col - 1 && cell.wall[1]){
+            checkingCollision(x+w,y,x+w,y+w);
+        }
+        if(cellular.r === rows - 1 &&cellular.wall[2]){
+            checkingCollision(x,y+w,x+w,y+w);
+        }
+    }
+}
+
 //it's gaming time
 
 function dating(){
@@ -111,6 +181,7 @@ function dating(){
     let gY = (rows-1)*w;
     if (ball.x>gX+5&&ball.x<gX+w-5&&ball.y>gY+5&&ball.y<gY+w-5){
         arena();
+        poSys();
         ball.x=w/2;
         ball.y=w/2;
         ball.vx=0;
@@ -132,6 +203,7 @@ function dating(){
         ball.vy *= bounce;
     }
 }
+//reset arena if ball touches green
 function reset(){
     dim.clearRect(0,0,canny.width,canny.height);
     let gX = (col-1)*w;
@@ -150,6 +222,7 @@ function reset(){
     dim.fill();
     dim.closePath();
 }
+//all in one
 function lol(){
     dating();
     reset();
@@ -165,6 +238,7 @@ class Cell{
         this.wall = [true, true, true, true];
         this.visited = false;
     }
+    //collision checker for other pillars
     checkOthers() {
         let others = [];
         let top = grid[liner(this.r-1, this.c)];
@@ -182,6 +256,7 @@ class Cell{
             return undefined;
         }
     }
+    //draws cols and rows
     drawing(){
         let x = this.c*w;
         let y = this.r*w;
@@ -219,6 +294,7 @@ function liner(r,c){
     if(r<0||c<0||r>=rows||c>=col) return -1;
     return c + r*col;
 }
+//maker
 function mazeBank(){
     grid = [];
     for (let r = 0; r<rows;r++){
@@ -229,6 +305,7 @@ function mazeBank(){
     curriCell = grid[0];
     curriCell.visited = true;
 }
+//removes any overlapping
 function removing(e,f){
     let x = e.c - f.c;
     if (x===1){
@@ -247,22 +324,44 @@ function removing(e,f){
         f.wall[0]=false;
     }
 }
+//checks arena if overlaps, then builds maze
 function arena(){
     mazeBank();
     let next = curriCell.checkOthers();
     while(next || stack.length >0){
         if(next){
-        next.visited = true;
+            next.visited = true;
         stack.push(curriCell);
         removing(curriCell, next);
         curriCell = next;
-        }else if(stack.length>0){
-            curriCell = stack.pop();
-        }
-        next = curriCell.checkOthers();
+    }else if(stack.length>0){
+        curriCell = stack.pop();
+    }
+    next = curriCell.checkOthers();
     }
 }
 //maze props end
+
+//detection if laptop is in use or mobile
+function isPC(){
+    if(navigator.userAgentData){
+        return !navigator.userAgentData.mobile;
+    }
+    const user = navigator.userAgent.toLowerCase();
+    //checks if mobile
+    const isMobile = /android|iphone|ipad/i.test(user);
+    return !isMobile;
+}
+if(isPC()){
+    alert("ATTENTION!! YOU DON'T HAVE THE SENSORS TO MAKE THIS WORK");
+}
+
+function poSys(){
+    points++;
+    pointers.innerText = "Points: "+points;
+    let current = score;
+}
+
 //aaaaand ACTION!!
 arena();
 lol();
