@@ -137,8 +137,8 @@ function checkingCollision(x,y,xx,yy){
                 nthy/=nleng;
                 let bali = ball.vx += 1.5*nthx + ball.vy * nthy;
                 if(bali<0){
-                    ball.vx -= 1.5*bali*nthx;
-                    ball.vy-=1.5*bali*nthy;
+                    ball.vx -= 1.3*bali*nthx;
+                    ball.vy-=1.3*bali*nthy;
                     ball.vx*=.6;
                     ball.vy*=.6;
                 }
@@ -158,10 +158,10 @@ function colliding(){
         if(cellular.wall[3]){
             checkingCollision(x,y,x,y+w);
         }
-        if(cellular.c === col - 1 && cellular.wall[1]){
+        if(cellular.wall[1]){
             checkingCollision(x+w,y,x+w,y+w);
         }
-        if(cellular.r === rows - 1 &&cellular.wall[2]){
+        if(cellular.wall[2]){
             checkingCollision(x,y+w,x+w,y+w);
         }
     }
